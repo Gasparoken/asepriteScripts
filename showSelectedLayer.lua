@@ -8,23 +8,23 @@ if selectedLayer == nil then
   return
 end
 
-local hideAllLayerExceptSelectedOnee = false
+local hideAllLayerExceptSelecteds = false
 for i = 1,#spr.layers do
-  if spr.layers[i] ~= selectedLayer then
-    if string.find(spr.layers[i].data, 'xxx') == nil then
-      -- we must hide all layers except the selected one
-      hideAllLayerExceptSelectedOnee = true
-    end
-    break
+  if string.find(spr.layers[i].data, 'xxx') == nil then
+    -- we must hide all layers except the selected one
+    hideAllLayerExceptSelecteds = true
   end
+  break
 end
 
-if hideAllLayerExceptSelectedOnee then
+if hideAllLayerExceptSelecteds then
   for i = 1,#spr.layers do
     spr.layers[i].isVisible = false
     spr.layers[i].data = spr.layers[i].data .. 'xxx'
   end
-  selectedLayer.isVisible = true
+  for i= 1, #app.range.layers do
+    app.range.layers[i].isVisible = true
+  end
 else
   for i = 1,#spr.layers do
     spr.layers[i].isVisible = true
