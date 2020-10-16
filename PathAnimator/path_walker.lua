@@ -301,23 +301,46 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
   local layersToMergeDown = {}
   drawingLayerCollection = orderDrawingLayerCollectionAccordingStackIndex(drawingLayerCollection)
 
+  local FRAME_LIMIT = 99999999
+  local minFrame = FRAME_LIMIT
+  local maxFrame = 1
   for i=1, #drawingLayerCollection, 1 do
     table.insert(layersToMergeDown, sprite:newLayer())
+    for j=1, #app.activeSprite.frames, 1 do
+      if drawingLayerCollection[i]:cel(j) ~= nil and j < minFrame then
+        minFrame = j
+        break
+      end
+    end
+    for j=#app.activeSprite.frames, 1, -1 do
+      if drawingLayerCollection[i]:cel(j) ~= nil and j > maxFrame then
+        maxFrame = j
+        break
+      end
+    end
   end
+
+  if minframe == FRAME_LIMIT then
+    app.alert("Error: the selected layers are empty. Please Select a layer with images.")
+    return false
+  end
+  
   for i=1, #drawingLayerCollection, 1 do
-    if drawingLayerCollection[i]:cel(1) ~= nil then
-      local position = drawingLayerCollection[i]:cel(1).position
-      local image = drawingLayerCollection[i]:cel(1).image
-      local frame = drawingLayerCollection[i]:cel(1).frame
-      sprite:newCel(layersToMergeDown[i], frame, image, position)
+    for j=minFrame, maxFrame, 1 do
+      if drawingLayerCollection[i]:cel(j) ~= nil then
+        local position = drawingLayerCollection[i]:cel(j).position
+        local image = drawingLayerCollection[i]:cel(j).image
+        local frame = drawingLayerCollection[i]:cel(j).frame
+        sprite:newCel(layersToMergeDown[i], frame, image, position)
+      end
     end
   end
   for i=1, #drawingLayerCollection-1, 1 do
     app.command.MergeDownLayer()
   end
   local auxLayer = app.activeLayer
-  local imageToMove = auxLayer:cel(1).image:clone()
-  local imageToMovePos = auxLayer:cel(1).position
+  local imageToMove = auxLayer:cel(minFrame).image:clone()
+  local imageToMovePos = auxLayer:cel(minFrame).position
   if imageToMove == nil then
     sprite:deleteLayer(auxLayer)
     app.alert("Error: selected image layers do not make an image.")
@@ -502,7 +525,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
   ------------------------------------------------------------------------------------------------------
   local rotauxLayer = nil
   local rotationInstructionVector = nil
-  if rotationType ~= ROTATION_NONE then
+  if rotationType ~= ROTATION_NONE and #auxLayer.cels == 1 then
     -- Check if some RotAux layer represents the imageToMove (the flatten image did at step 7):
     local recalculateRotations = false
     for i,layer in ipairs(rotationAuxLayerCollection) do
@@ -560,20 +583,14 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
       end
     end
   end
-  -- Save the original data on ResultLayer and cel if something fails in the 'for' iteration:
-  -- sprite:newCel(resultLayer, startFrame, auxLayer.image:clone(), auxLayer.cels[1].position)
-  sprite:deleteLayer(auxLayer)
-  -- if celDataTemp ~= nil then
-  --   resultLayer:cel(startFrame).data = celDataTemp
-  -- end
 
-  if rotationType == ROTATION_NONE and initialAngle ~= 0 then
+  if rotationType == ROTATION_NONE and initialAngle ~= 0 and #auxLayer.cels == 1 then
     imageToMove = Rotar(imageToMove, initialAngle * math.pi / 180)
   end
   local celWithRotatedImageAtDesiredAngle = nil
   local imageSelfCenter = Point((imageToMove.width - 0.5) / 2, (imageToMove.height - 0.5) / 2)
   for i=1, framesCountToFill, 1 do
-    if rotationType ~= ROTATION_NONE then
+    if rotationType ~= ROTATION_NONE and #auxLayer.cels == 1 then
       celWithRotatedImageAtDesiredAngle = extractCelRotated(rotauxLayer, rotationInstructionVector[i] + initialAngle * math.pi / 180)
       imageToMove = celWithRotatedImageAtDesiredAngle.image
       imageSelfCenter = Point((imageToMove.width - 0.5) / 2, (imageToMove.height - 0.5) / 2)
@@ -583,7 +600,16 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
         sprite:newCel(resultLayer, startFrame + i - 1, imageToMove, translationCoordinatesVector[i] - imageSelfCenter)
       end
     else
-      sprite:newCel(resultLayer, startFrame + i - 1, imageToMove, translationCoordinatesVector[i] - imageSelfCenter)
+      if #auxLayer.cels > 1 then
+        local auxLayerFrameCorrespondence = minFrame + ((i - 1) % (#auxLayer.cels))
+        if auxLayer:cel(auxLayerFrameCorrespondence) ~= nil then
+          local auxLayerImage = auxLayer:cel(auxLayerFrameCorrespondence).image
+          imageSelfCenter = Point(auxLayerImage.width / 2, auxLayerImage.height / 2)
+          sprite:newCel(resultLayer, startFrame + i - 1, auxLayerImage, translationCoordinatesVector[i] - imageSelfCenter)
+        end
+      else
+        sprite:newCel(resultLayer, startFrame + i - 1, imageToMove, translationCoordinatesVector[i] - imageSelfCenter)
+      end
     end
   end
   -- print("12-DONE")
@@ -592,6 +618,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
   ------------------------------------------------------------------------------------------------------
   resultLayer:cel(startFrame).data = confString
   -- print("13-DONE")
+  sprite:deleteLayer(auxLayer)
   return true
 end
 

@@ -151,8 +151,33 @@ if reAnimateIntention then
 end
 -- Memorize original layers selected, before to run Path Animator Tool
 local originalLayerStackIndices = {}
+local celWithImageFound = false
+local commandLayersFound = false
 for i,layer in ipairs(app.range.layers) do
   table.insert(originalLayerStackIndices, layer.stackIndex)
+  if layer.name:find(STRING_PATH_LAYER) == nil and
+     layer.name:find(STRING_FUNCTION_LAYER) == nil and
+     layer.name:find(STRING_RESULT_LAYER) == nil and
+     layer.name:find(STRING_ROTATION_LAYER) == nil and
+     layer.name:find(STRING_LOOKED_LAYER) == nil and
+     layer.name:find(STRING_ROTAUX_LAYER) == nil and
+     #layer.cels >= 1 then
+    celWithImageFound = true
+  end
+  if layer.name:find(STRING_PATH_LAYER) ~= nil or
+     layer.name:find(STRING_LOOKED_LAYER) ~= nil then
+    commandLayersFound = true
+  end
+end
+if not commandLayersFound and not celWithImageFound then
+  app.alert(string.format("Error: selected layers don't contain %s or %s in their names. Even, selected layers are empty.", STRING_PATH_LAYER, STRING_LOOKED_LAYER))
+  return nil
+elseif not commandLayersFound and celWithImageFound then
+  app.alert(string.format("Error: selected layers don't contains %s neither %s in their names.", STRING_PATH_LAYER, STRING_LOOKED_LAYER))
+  return nil
+elseif commandLayersFound and not celWithImageFound then
+  app.alert("Error: one or more selected layers are empty. Please Select a layer with images.")
+  return nil
 end
 -- Dialogo:
 local dlg = Dialog{ title="Path Animator Tool" }
