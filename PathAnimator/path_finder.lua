@@ -307,14 +307,18 @@ function angleCalculation(point0, point1, codeRefNumber)
   else
     if adyacent == 0 then
       if oposite > 0 then
-        angle = -math.pi /2
+        angle = 3 * math.pi / 2
       else
-        angle = math.pi /2
+        angle = math.pi / 2
       end
     elseif adyacent > 0 then
       angle = math.pi + math.asin(oposite / hipo)
     else
-      angle = -math.asin(oposite / hipo)
+      if oposite >= 0 then
+        angle = 2 * math.pi - math.asin(oposite / hipo)
+      else
+        angle = -math.asin(oposite / hipo)
+      end
     end
   end
   return angle
@@ -329,13 +333,13 @@ function conformPathTimedIndices(timeVectorN, frameCount, translationFun, transl
   return pathVectorIndices
 end
 
-function makeRotationInstructionVector(pathVectorExtended, timeVectorN, framesCountToFill, rotationType, translationFun, translationLayer, rotFunLayer, lookAtLayer, C, startingFrame)  
+function makeRotationInstructionVector(pathVectorExtended, timeVectorN, framesCountToFill, rotationType, translationFun, translationLayer, rotFunLayer, lookAtLayer, C, startingFrame, initialAngle)  
   local outputRotationInstructionVector = {}
   local pathVectorIndices = conformPathTimedIndices(timeVectorN, framesCountToFill, translationFun, translationLayer, C)
 
   if rotationType == ROTATION_PATH then
     for i=1, #pathVectorIndices, 1 do
-        table.insert(outputRotationInstructionVector, angleCalculation(pathVectorExtended[pathVectorIndices[i]-C], pathVectorExtended[pathVectorIndices[i]+C], 1))
+      table.insert(outputRotationInstructionVector, angleCalculation(pathVectorExtended[pathVectorIndices[i]-C], pathVectorExtended[pathVectorIndices[i]+C], 1) + initialAngle)
     end
   elseif rotationType == ROTATION_BYLAYER then
     if rotFunLayer == nil then
@@ -350,7 +354,7 @@ function makeRotationInstructionVector(pathVectorExtended, timeVectorN, framesCo
     local rotCurve = makeCurveFromLayer(rotFunLayer, true)
     for i=1, #pathVectorIndices, 1 do
       local timeFraction = (i - 1 ) / (#pathVectorIndices - 1)
-      table.insert(outputRotationInstructionVector, rotCurve[math.floor(timeFraction * (#rotCurve - 1) + 1)])
+      table.insert(outputRotationInstructionVector, rotCurve[math.floor(timeFraction * (#rotCurve - 1) + 1)] + initialAngle)
     end
   elseif rotationType == ROTATION_LOOKAT then
     if lookAtLayer == nil then
@@ -366,17 +370,17 @@ function makeRotationInstructionVector(pathVectorExtended, timeVectorN, framesCo
       local imageCenterPoint = Point(math.floor(lookAtLayer.cels[1].image.width / 2), math.floor(lookAtLayer.cels[1].image.height / 2))
       local pointToBeLookedAt = lookAtLayer.cels[1].position + imageCenterPoint
       for i=1, #pathVectorIndices, 1 do
-        table.insert(outputRotationInstructionVector, angleCalculation(pathVectorExtended[pathVectorIndices[i]], pointToBeLookedAt, 2))
+        table.insert(outputRotationInstructionVector, angleCalculation(pathVectorExtended[pathVectorIndices[i]], pointToBeLookedAt, 2) + initialAngle)
       end
     elseif #lookAtLayer.cels > 1 then
       -- 'look at' angle es computed only on filled cels, otherwise angle is 0.
       for i=1, #pathVectorIndices, 1 do
         if lookAtLayer:cel(startingFrame - 1 + i) == nil then
-          table.insert(outputRotationInstructionVector, 0)
+          table.insert(outputRotationInstructionVector, initialAngle)
         else
           local imageCenterPoint = Point(math.floor(lookAtLayer:cel(startingFrame - 1 + i).image.width / 2), math.floor(lookAtLayer:cel(startingFrame - 1 + i).image.height / 2))
           local pointToBeLookedAt = lookAtLayer:cel(startingFrame - 1 + i).position + imageCenterPoint
-          table.insert(outputRotationInstructionVector, angleCalculation(pathVectorExtended[pathVectorIndices[i]], pointToBeLookedAt, 3))
+          table.insert(outputRotationInstructionVector, angleCalculation(pathVectorExtended[pathVectorIndices[i]], pointToBeLookedAt, 3) + initialAngle)
         end
       end
     end

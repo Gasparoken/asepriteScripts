@@ -23,6 +23,7 @@
 EXPAND = 1
 
 function Rotar(image2Rot, angle)
+  -- angle is in radians
   local maskColor = image2Rot.spec.transparentColor
   local maxSize = math.floor(image2Rot.width * 1.416)
   if math.floor(image2Rot.height * 1.416) > maxSize then
@@ -165,13 +166,13 @@ function makeRotationLayerReference(layer, image, deltaDegrees)
               }
 end
 
-function extractCelRotated(rotauxLayer, angle)
+function extractCelRotated(rotauxLayer, angle, deltaAngleCount)
   if rotauxLayer == nil then
     app.alert(string.format("Internal error: no %s layer found as first argument of 'extractImageRotated()' function in 'rotation.lua'.", STRING_ROTAUX_LAYER))
     return nil
   end
-  local deltaAngle = 2 * math.pi / #rotauxLayer.cels
-  local celIndex = 1 + ((math.floor(angle / deltaAngle)) % #rotauxLayer.cels)
+  local deltaAngle = 2 * math.pi / deltaAngleCount
+  local celIndex = 1 + (math.floor(angle / deltaAngle) % deltaAngleCount)
   if rotauxLayer:cel(celIndex) == nil then
     app.alert(string.format("Internal error: no cel index %d found in 'extractImageRotated()' function in 'rotation.lua'.", celIndex))
     return nil

@@ -525,9 +525,11 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
   ------------------------------------------------------------------------------------------------------
   local rotauxLayer = nil
   local rotationInstructionVector = nil
+  local deltaAngleCount = nil
   if rotationType ~= ROTATION_NONE and #auxLayer.cels == 1 then
     -- Check if some RotAux layer represents the imageToMove (the flatten image did at step 7):
     local recalculateRotations = false
+    -- print("10.1-DONE")
     for i,layer in ipairs(rotationAuxLayerCollection) do
       if layer.data == drawingLayersIdString then
         if layer:cel(1) == nil then
@@ -536,24 +538,35 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
         end
         rotauxLayer = layer
         recalculateRotations = areDifferentImages(rotauxLayer:cel(1).image, imageToMove)
+        break
       end
     end
+    -- print("10.2-DONE")
     if rotauxLayer == nil then
       rotauxLayer = sprite:newLayer()
       rotauxLayer.name = STRING_ROTAUX_LAYER
       rotauxLayer.data = drawingLayersIdString
-      recalculateRotations = true
+      sprite:newCel(rotauxLayer, 1, imageToMove, Point(0, 0))
     end
     -- print("10.5-DONE")
+    local deltaAngle = 2.8125 / 2
+    deltaAngleCount = math.floor(360 / deltaAngle)
+    if deltaAngleCount > #sprite.frames then
+      for i=#sprite.frames, deltaAngleCount-1, 1 do
+        sprite:newEmptyFrame()
+      end
+    end
+    -- makeRotationLayerReference(rotauxLayer, imageToMove, deltaAngle)
     -- If 'recalculateRotations' == true , recalculate 'RotAux' layer to make each rotated image.
     if recalculateRotations then
-      local deltaAngle = 2.8125
-      if math.floor(360 / deltaAngle) > #sprite.frames then
-        for i=#sprite.frames, math.floor(360 / deltaAngle)-1, 1 do
-          sprite:newEmptyFrame()
+      -- Clear all cels of rotauxLayer
+      for i=1, #rotauxLayer.cels, 1 do
+        if rotauxLayer.cels[i] ~= nil then
+          sprite:deleteCel(rotauxLayer, rotauxLayer.cels[i].frameNumber)
         end
       end
-      makeRotationLayerReference(rotauxLayer, imageToMove, deltaAngle)
+      -- Make only the first frame in rotauxLayer:
+      sprite:cel(rotauxLayer, 1, imageToMove, Point(0, 0))
     end
     -- print("10.7-DONE")
     rotationInstructionVector = makeRotationInstructionVector(weldedPathExtended,
@@ -565,7 +578,16 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
                                                               rotFunLayer,
                                                               lookAtLayer,
                                                               C,
-                                                              startFrame)
+                                                              startFrame,
+                                                              initialAngle * math.pi / 180)
+    -- print("10.8-DONE")
+    local deltaAngleRad = deltaAngle * math.pi / 180
+    for i=1, #rotationInstructionVector, 1 do
+      local angleIndex = 1 + math.floor(rotationInstructionVector[i] / deltaAngleRad) % deltaAngleCount
+      if rotauxLayer:cel(angleIndex) == nil then
+        sprite:newCel(rotauxLayer, angleIndex, Rotar(imageToMove, (angleIndex - 1) * deltaAngleRad), Point(0, 0))
+      end
+    end
   end
   -- print("10-DONE")
   ------------------------------------------------------------------------------------------------------
@@ -591,7 +613,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
   local imageSelfCenter = Point((imageToMove.width - 0.5) / 2, (imageToMove.height - 0.5) / 2)
   for i=1, framesCountToFill, 1 do
     if rotationType ~= ROTATION_NONE and #auxLayer.cels == 1 then
-      celWithRotatedImageAtDesiredAngle = extractCelRotated(rotauxLayer, rotationInstructionVector[i] + initialAngle * math.pi / 180)
+      celWithRotatedImageAtDesiredAngle = extractCelRotated(rotauxLayer, rotationInstructionVector[i], deltaAngleCount)
       imageToMove = celWithRotatedImageAtDesiredAngle.image
       imageSelfCenter = Point((imageToMove.width - 0.5) / 2, (imageToMove.height - 0.5) / 2)
       if imageToMove == nil then
