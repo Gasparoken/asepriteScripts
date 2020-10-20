@@ -25,6 +25,7 @@ dofile('./layer_ops.lua')
 dofile('./animation_functions.lua')
 dofile('./path_finder.lua')
 dofile('./rotation.lua')
+dofile('./scale_ops.lua')
 
 function areDifferentImages(image1, image2)
   if image1.width ~= image2.width or image1.height ~= image2.height then
@@ -67,7 +68,9 @@ function orderDrawingLayerCollectionAccordingStackIndex(layers)
 end
 
 
-function animateIt(selectedLayers, startTime, aniDuration, translationFunction, rotationType, initialAngle, startPathPos, loopPath, makeNewResultLayer)
+function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
+                   rotationType, initialAngle, startPathPos, loopPath,
+                   scaleFunction, initialScale, finalScale, makeNewResultLayer)
   app.transaction(
     function()
       ------------------------------------------------------------------------------------------------------
@@ -92,8 +95,6 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
           table.insert(resultLayerCollection, app.activeSprite.layers[i])
         end
       end
-
-
       -- print("1-DONE")
       ------------------------------------------------------------------------------------------------------
       --2 Make layer collections with selectedLayers
@@ -103,6 +104,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
       local pathCollection = {} -- layers with strokes without white dot
       local trasFunLayer = nil
       local rotFunLayer = nil
+      local scaleFunLayer = nil
       local lookAtLayer = nil
       local drawingLayerCollection = {}
       local resultLayer = nil
@@ -122,6 +124,9 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
           initialAngle = extractInitialAngleFromConf(confString)
           startPathPos = extractStartPathPosFromConf(confString)
           loopPath = extractLoopPathFromConf(confString)
+          scaleFunction = extractScaleFunctionFromConf(confString)
+          initialScale = extractInitialScaleFromConf(confString)
+          finalScale = extractFinalScaleFromConf(confString)
         end
 
         if rotationType == ROTATION_BYLAYER then
@@ -143,7 +148,13 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
             return false
           end
         end
-        
+        if scaleFunction == SCALE_BYLAYER then
+          scaleFunLayer = extractScaleFunLayerFromConf(confString)
+          if scaleFunLayer == nil then
+            app.alert(string.format("Scale Function not found from configuration (config is in the first non empty cel of custom data of the '%s' layer).", STRING_RESULT_LAYER))
+            return false
+          end
+        end
         if rotationType == ROTATION_LOOKAT then
           lookAtLayer = extractLookAtLayerFromLayerConf(confString)
           if lookAtLayer == nil then
@@ -185,6 +196,8 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
             -- do nothing
           elseif layer.name:find(STRING_ROTATION_LAYER) ~= nil then
             rotFunLayer = layer
+          elseif layer.name:find(STRING_SCALE_LAYER) ~= nil then
+            scaleFunLayer = layer
           elseif layer.name:find(STRING_LOOKED_LAYER) ~= nil then
             lookAtLayer = layer
           else
@@ -209,13 +222,9 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
             app.alert(string.format("Please, select a layer which name contains '%s' or '%s' string, and at least an image layer.", STRING_PATH_LAYER, STRING_LOOKED_LAYER))
             return false
           end
-        -- else
-        --   startPathLayer = pathLayerCollection[1]
-        --   temp = 1 -- temp = 1  -->  whitePointIsInStartPathLayer = false
         end
       end
       
-      -- for i=1+temp, #pathLayerCollection, 1 do
       for i=1, #pathLayerCollection, 1 do
         local path = getPath(pathLayerCollection[i])
         if path == nil then
@@ -285,8 +294,14 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
                           "a" .. initialAngle .. "§" ..
                           "l" .. loopPathString .. "§" ..
                           "p" .. startPathPos .. "§" ..
+                          "h" .. scaleFunction .. "§" ..
+                          "i" .. initialScale .. "§" ..
+                          "c" .. finalScale .. "§" ..
                           "n" .. makeNewResultLayerString .. "§"
-                          
+      
+      if scaleFunLayer ~= nil then
+        confString = confString .. "k" .. scaleFunLayer.name .. "§"
+      end
       if trasFunLayer ~= nil then
         confString = confString .. "y" .. trasFunLayer.name .. "§"
       end
@@ -599,7 +614,15 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
       local translationCoordinatesVector = makePath(weldedPathExtended, timeVectorN, framesCountToFill, translationFunction, trasFunLayer, C)
       -- print("11-DONE")
       ------------------------------------------------------------------------------------------------------
-      --12 Make ResultLayer to compose position + rotation of the imageToMove
+      --12 Make the scale vector
+      ------------------------------------------------------------------------------------------------------
+      local scaleVector = {}
+      if initialScale ~= 1.0 or finalScale ~= 1.0 then
+        scaleVector = makeScaleVector(framesCountToFill, scaleFunction, scaleFunLayer, initialScale, finalScale)
+      end
+      -- print("12-DONE")
+      ------------------------------------------------------------------------------------------------------
+      --13 Make ResultLayer to compose position + rotation of the imageToMove
       ------------------------------------------------------------------------------------------------------
       if #resultLayer.cels ~= 0 then
         for i=1, #resultLayer.cels, 1 do
@@ -614,35 +637,49 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction, 
       end
       local celWithRotatedImageAtDesiredAngle = nil
       local imageSelfCenter = Point((imageToMove.width - 0.5) / 2, (imageToMove.height - 0.5) / 2)
+      local scaledImageToMove = nil
       for i=1, framesCountToFill, 1 do
         if rotationType ~= ROTATION_NONE and #auxLayer.cels == 1 then
+          -- Rotation / No animation
           celWithRotatedImageAtDesiredAngle = extractCelRotated(rotauxLayer, rotationInstructionVector[i], deltaAngleCount)
           imageToMove = celWithRotatedImageAtDesiredAngle.image
+          if #scaleVector ~= 0 then
+            imageToMove = resizeImage(imageToMove, scaleVector[i])
+          end
           imageSelfCenter = Point((imageToMove.width - 0.5) / 2, (imageToMove.height - 0.5) / 2)
           if imageToMove == nil then
             sprite:newCel(resultLayer, startFrame + i - 1)
           else
             sprite:newCel(resultLayer, startFrame + i - 1, imageToMove, translationCoordinatesVector[i] - imageSelfCenter)
           end
-        else
-          if #auxLayer.cels > 1 then
-            local auxLayerFrameCorrespondence = minFrame + ((i - 1) % (#auxLayer.cels))
-            if auxLayer:cel(auxLayerFrameCorrespondence) ~= nil then
-              local auxLayerImage = auxLayer:cel(auxLayerFrameCorrespondence).image
-              imageSelfCenter = Point(auxLayerImage.width / 2, auxLayerImage.height / 2)
-              sprite:newCel(resultLayer, startFrame + i - 1, auxLayerImage, translationCoordinatesVector[i] - imageSelfCenter)
+        elseif rotationType == ROTATION_NONE and #auxLayer.cels > 1 then
+          -- No Rotation / With animation
+          local auxLayerFrameCorrespondence = minFrame + ((i - 1) % (#auxLayer.cels))
+          if auxLayer:cel(auxLayerFrameCorrespondence) ~= nil then
+            local auxLayerImage = auxLayer:cel(auxLayerFrameCorrespondence).image:clone()
+            if #scaleVector ~= 0 then
+              auxLayerImage = resizeImage(auxLayerImage, scaleVector[i])
             end
-          else
+            imageSelfCenter = Point(auxLayerImage.width / 2, auxLayerImage.height / 2)
+            sprite:newCel(resultLayer, startFrame + i - 1, auxLayerImage, translationCoordinatesVector[i] - imageSelfCenter)
+          end
+        elseif rotationType == ROTATION_NONE and #auxLayer.cels == 1 then
+          -- No Rotation / No animation
+          if #scaleVector ~= 0 then
+            scaledImageToMove = resizeImage(imageToMove, scaleVector[i])
+            imageSelfCenter = Point(scaledImageToMove.width / 2, scaledImageToMove.height / 2)
+            sprite:newCel(resultLayer, startFrame + i - 1, scaledImageToMove, translationCoordinatesVector[i] - imageSelfCenter)
+          elseif scaledImageToMove == nil then
             sprite:newCel(resultLayer, startFrame + i - 1, imageToMove, translationCoordinatesVector[i] - imageSelfCenter)
           end
         end
       end
-      -- print("12-DONE")
+      -- print("13-DONE")
       ------------------------------------------------------------------------------------------------------
-      --13 Assign configuration string to the resultLayer
+      --14 Assign configuration string to the resultLayer
       ------------------------------------------------------------------------------------------------------
       resultLayer:cel(startFrame).data = confString
-      -- print("13-DONE")
+      -- print("14-DONE")
       sprite:deleteLayer(auxLayer)
       return true
     end

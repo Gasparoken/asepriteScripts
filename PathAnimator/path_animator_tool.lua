@@ -97,6 +97,9 @@ local rotationType = ROTATIONprefix .. ROTATION_NONE
 local initialAngle = DEFAULT_INITIALANGLE_STRING
 local startPathPos = DEFAULT_PATH_START_POS_STRING
 local loopPath = DEFAULT_LOOP_PATH
+local scaleFun = SFUNprefix .. SCALE_NONE
+local initialScale = DEFAULT_INITIAL_SCALE
+local finalScale = DEFAULT_FINAL_SCALE
 local makeNewResultLayer = DEFAULT_MAKE_NEW_RESULT_LAYER
 local makeNewResultLayerEnabled = false
 if defaultConfString ~= nil then
@@ -107,6 +110,9 @@ if defaultConfString ~= nil then
   initialAngle = extractInitialAngleFromConf(defaultConfString)
   startPathPos = extractStartPathPosFromConf(defaultConfString)
   loopPath = extractLoopPathFromConf(defaultConfString)
+  scaleFun = SFUNprefix .. extractScaleFunctionFromConf(defaultConfString)
+  initialScale = extractInitialScaleFromConf(defaultConfString)
+  finalScale = extractFinalScaleFromConf(defaultConfString)
   makeNewResultLayer = extractMakeNewResultLayerFromConf(defaultConfString)
   makeNewResultLayerEnabled = true
 end
@@ -161,6 +167,7 @@ for i,layer in ipairs(app.range.layers) do
      layer.name:find(STRING_ROTATION_LAYER) == nil and
      layer.name:find(STRING_LOOKED_LAYER) == nil and
      layer.name:find(STRING_ROTAUX_LAYER) == nil and
+     layer.name:find(STRING_SCALE_LAYER) == nil and
      #layer.cels >= 1 then
     celWithImageFound = true
   end
@@ -240,6 +247,31 @@ dlg:number  {   id="initialAngle",
                 decimals=3
 }
 dlg:newrow()
+
+dlg:combobox  { id="scaleFunction",
+                option=scaleFun,
+                options={ SFUNprefix .. SCALE_NONE,
+                          SFUNprefix .. SCALE_LINEAL,
+                          SFUNprefix .. SCALE_BYLAYER,
+                          SFUNprefix .. SCALE_EASYIN,
+                          SFUNprefix .. SCALE_EASYOUT,
+                          SFUNprefix .. SCALE_EASYOUTDAMPED,
+                          SFUNprefix .. SCALE_EASYOUTDAMPED2,
+                          SFUNprefix .. SCALE_EASYINOUT,
+                          SFUNprefix .. SCALE_SINUSOIDAL,
+                          SFUNprefix .. SCALE_PARABOLIC }
+}
+dlg:newrow()
+dlg:number  {   id="initialScale",
+                text=initialScale,
+                decimals=3
+}
+dlg:newrow()
+dlg:number  {   id="finalScale",
+                text=finalScale,
+                decimals=3
+}
+dlg:newrow()
 dlg:check  {  id="makeNewResultLayer",
               text="Make new ResultLayer",
               enabled=makeNewResultLayerEnabled,
@@ -258,6 +290,9 @@ dlg:button  {   text = "Animate it",
                     local initialAngle = dlg.data.initialAngle
                     local startPathPos = dlg.data.startPathPos
                     local loopPath = dlg.data.loopPath
+                    local scaleFunction = dlg.data.scaleFunction:gsub(SFUNprefix, "")
+                    local initialScale = dlg.data.initialScale
+                    local finalScale = dlg.data.finalScale
                     local makeNewResultLayer = dlg.data.makeNewResultLayer
                     if startTime == DEFAULT_STARTTIME_STRING then
                       startTime = 0.0
@@ -271,7 +306,25 @@ dlg:button  {   text = "Animate it",
                     if startPathPos == nil or startPathPos == "" or startPathPos == DEFAULT_PATH_START_POS_STRING then
                       startPathPos = 0.0
                     end
-                    local success = animateIt(app.range.layers, startTime, duration, translationFunction, rotation , initialAngle, startPathPos, loopPath, makeNewResultLayer)
+                    if initialScale == DEFAULT_INITIAL_SCALE then
+                      initialScale = 1.0
+                    end
+                    if finalScale == DEFAULT_FINAL_SCALE then
+                      finalScale = 1.0
+                    end
+                    
+                    local success = animateIt(app.range.layers,
+                                              startTime,
+                                              duration,
+                                              translationFunction,
+                                              rotation,
+                                              initialAngle,
+                                              startPathPos,
+                                              loopPath,
+                                              scaleFunction,
+                                              initialScale,
+                                              finalScale,
+                                              makeNewResultLayer)
                     app.activeFrame = 1
                     dlg:close()
                   end

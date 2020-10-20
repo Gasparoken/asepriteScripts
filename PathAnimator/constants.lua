@@ -24,6 +24,7 @@ STRING_PATH_LAYER = "PATH"
 STRING_RESULT_LAYER = "ResultLayer"
 STRING_FUNCTION_LAYER = "TFUN"
 STRING_ROTATION_LAYER = "RFUN"
+STRING_SCALE_LAYER = "SFUN"
 STRING_LOOKED_LAYER = "LOOKIT"
 STRING_ROTAUX_LAYER = "RotAux"
 
@@ -42,15 +43,29 @@ ROTATION_PATH = "Path track"
 ROTATION_LOOKAT = "Look at"
 ROTATION_BYLAYER = "By Layer"
 
+SCALE_NONE = "None"
+SCALE_LINEAL = "Lineal"
+SCALE_BYLAYER = "By Layer"
+SCALE_EASYIN = "Easy In"
+SCALE_EASYOUT = "Easy Out"
+SCALE_EASYINOUT = "Easy InOut"
+SCALE_SINUSOIDAL = "Sinusoidal"
+SCALE_PARABOLIC = "Parabolic"
+SCALE_EASYOUTDAMPED = "Easy Out Damped"
+SCALE_EASYOUTDAMPED2 = "Easy Out Damped2"
+
 DEFAULT_STARTTIME_STRING = "Start_time_[seg]"
 DEFAULT_DURATION_STRING = "Duration_[seg]"
 DEFAULT_INITIALANGLE_STRING = "Start_angle_[degrees]"
 DEFAULT_PATH_START_POS_STRING = "Start_path_pos_[%]"
 DEFAULT_LOOP_PATH = false
+DEFAULT_INITIAL_SCALE = "Start_scale_[%]"
+DEFAULT_FINAL_SCALE = "Final_scale_[%]"
 DEFAULT_MAKE_NEW_RESULT_LAYER = true
 
 TFUNprefix = "Translation: "
 ROTATIONprefix = "Rotation: "
+SFUNprefix = "Scale: "
 LOOP_PHASE = "Loop the path translation?"
 
 -- K_PATH_TO_IMAGE_CONSTANT

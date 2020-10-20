@@ -322,6 +322,60 @@ function extractLoopPathFromConf(configurationString)
     end
 end
 
+function extractScaleFunctionFromConf(configurationString)
+    if configurationString:find("§h") == nil then
+        return SCALE_NONE
+    end
+    local scaleFunctionString = configurationString:sub(configurationString:find("§h")+3, configurationString:len())
+    if scaleFunctionString == nil or scaleFunctionString == "" then
+        return SCALE_NONE
+    else
+        return scaleFunctionString:sub(1, scaleFunctionString:find("§")-1)
+    end
+end
+
+function extractScaleFunLayerFromConf(configurationString)
+    if configurationString:find("§k") == nil then
+        return nil
+    end
+    local scaleFunctionLayerNameString = configurationString:sub(configurationString:find("§k")+3, configurationString:len())
+    if scaleFunctionLayerNameString == nil or scaleFunctionLayerNameString == "" then
+        app.alert("Error: no scale layer function found.")
+        return nil
+    end
+    scaleFunctionLayerNameString = scaleFunctionLayerNameString:sub(1, scaleFunctionLayerNameString:find("§")-1)
+    for i,layer in ipairs(app.activeSprite.layers) do
+        if layer.name == scaleFunctionLayerNameString then
+            return layer
+        end
+    end
+    return nil
+end
+
+function extractInitialScaleFromConf(configurationString)
+    if configurationString:find("§i") == nil then
+        return DEFAULT_INITIAL_SCALE
+    end
+    local initialScale = configurationString:sub(configurationString:find("§i")+3, configurationString:len())
+    if initialScale == nil or initialScale == "" then
+        return DEFAULT_INITIAL_SCALE
+    else
+        return initialScale:sub(1, initialScale:find("§")-1)
+    end
+end
+
+function extractFinalScaleFromConf(configurationString)
+    if configurationString:find("§c") == nil then
+        return DEFAULT_FINAL_SCALE
+    end
+    local finalScale = configurationString:sub(configurationString:find("§c")+3, configurationString:len())
+    if finalScale == nil or finalScale == "" then
+        return DEFAULT_FINAL_SCALE
+    else
+        return finalScale:sub(1, finalScale:find("§")-1)
+    end
+end
+
 function extractStartPathPosFromConf(configurationString)
     if configurationString:find("§p") == nil then
         return DEFAULT_PATH_START_POS_STRING
