@@ -294,25 +294,13 @@ dlg:button  {   text = "Animate it",
                     local initialScale = dlg.data.initialScale
                     local finalScale = dlg.data.finalScale
                     local makeNewResultLayer = dlg.data.makeNewResultLayer
-                    if startTime == DEFAULT_STARTTIME_STRING then
-                      startTime = 0.0
-                    end
                     if duration == 0 then
                       duration = 2.0
                     end
-                    if initialAngle == DEFAULT_INITIALANGLE_STRING then
-                      initialAngle = 0
+                    if initialScale == 0 and finalScale == 0 then
+                      initialScale = 1
+                      finalScale = 1
                     end
-                    if startPathPos == nil or startPathPos == "" or startPathPos == DEFAULT_PATH_START_POS_STRING then
-                      startPathPos = 0.0
-                    end
-                    if initialScale == DEFAULT_INITIAL_SCALE then
-                      initialScale = 1.0
-                    end
-                    if finalScale == DEFAULT_FINAL_SCALE then
-                      finalScale = 1.0
-                    end
-                    
                     local success = animateIt(app.range.layers,
                                               startTime,
                                               duration,

@@ -208,6 +208,13 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
         end
       end
 
+      -- Dummy calculus to convert strings to number:
+      initialAngle = initialAngle * 2 / 2
+      initialScale = initialScale * 2 / 2
+      finalScale = finalScale * 2 / 2
+      aniDuration = aniDuration * 2 / 2
+      startTime = startTime * 2 / 2
+
       local generateStillPath = false -- when the user selects NO PATH layer, AND the user selects "Rotation: LookAt" or"Rotation: By Layer"
                                       -- we have to generate a "still path" to allow apply this 
       -- local temp = 0 -- temp = 0  -->  whitePointIsInStartPathLayer = true
@@ -606,6 +613,18 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
             sprite:newCel(rotauxLayer, angleIndex, Rotar(imageToMove, (angleIndex - 1) * deltaAngleRad), Point(0, 0))
           end
         end
+      elseif rotationType ~= ROTATION_NONE and #auxLayer.cels ~= 1 then
+        rotationInstructionVector = makeRotationInstructionVector(weldedPathExtended,
+                                                                  timeVectorN,
+                                                                  framesCountToFill,
+                                                                  rotationType,
+                                                                  translationFunction,
+                                                                  trasFunLayer,
+                                                                  rotFunLayer,
+                                                                  lookAtLayer,
+                                                                  C,
+                                                                  startFrame,
+                                                                  initialAngle * math.pi / 180)
       end
       -- print("10-DONE")
       ------------------------------------------------------------------------------------------------------
@@ -652,8 +671,20 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
           else
             sprite:newCel(resultLayer, startFrame + i - 1, imageToMove, translationCoordinatesVector[i] - imageSelfCenter)
           end
+        elseif rotationType ~= ROTATION_NONE and #auxLayer.cels > 1 then
+          -- Rotation / Animation
+          local auxLayerFrameCorrespondence = minFrame + ((i - 1) % (#auxLayer.cels))
+          if auxLayer:cel(auxLayerFrameCorrespondence) ~= nil then
+            local auxLayerImage = auxLayer:cel(auxLayerFrameCorrespondence).image:clone()
+            if #scaleVector ~= 0 then
+              auxLayerImage = resizeImage(auxLayerImage, scaleVector[i])
+            end
+            auxLayerImage = Rotar(auxLayerImage, rotationInstructionVector[i])
+            imageSelfCenter = Point(auxLayerImage.width / 2, auxLayerImage.height / 2)
+            sprite:newCel(resultLayer, startFrame + i - 1, auxLayerImage, translationCoordinatesVector[i] - imageSelfCenter)
+          end
         elseif rotationType == ROTATION_NONE and #auxLayer.cels > 1 then
-          -- No Rotation / With animation
+          -- No Rotation / Animation
           local auxLayerFrameCorrespondence = minFrame + ((i - 1) % (#auxLayer.cels))
           if auxLayer:cel(auxLayerFrameCorrespondence) ~= nil then
             local auxLayerImage = auxLayer:cel(auxLayerFrameCorrespondence).image:clone()
@@ -687,7 +718,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
 end
 
 function animateResultLayer(layer)
-  animateIt({layer}, 0, 1, 0, 0, 0, 0, false, false)
+  animateIt({layer}, 0, 1, 0, 0, 0, 0, false, nil, 1, 1, false)
 end
 
 
