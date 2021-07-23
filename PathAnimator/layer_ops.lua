@@ -1,5 +1,5 @@
 -- Layer Operations
--- Copyright (C) 2020 Gaspar Capello
+-- Copyright (C) 2020-2021 Gaspar Capello
 
 -- Permission is hereby granted, free of charge, to any person obtaining
 -- a copy of this software and associated documentation files (the
@@ -360,7 +360,8 @@ function extractInitialScaleFromConf(configurationString)
     if initialScale == nil or initialScale == "" then
         return DEFAULT_INITIAL_SCALE
     else
-        return initialScale:sub(1, initialScale:find("§")-1)
+        local perCentScale = initialScale:sub(1, initialScale:find("§")-1)
+        return perCentScale / 100.0
     end
 end
 
@@ -372,7 +373,8 @@ function extractFinalScaleFromConf(configurationString)
     if finalScale == nil or finalScale == "" then
         return DEFAULT_FINAL_SCALE
     else
-        return finalScale:sub(1, finalScale:find("§")-1)
+        local perCentScale = finalScale:sub(1, finalScale:find("§")-1)
+        return perCentScale / 100.0
     end
 end
 

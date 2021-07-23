@@ -1,5 +1,5 @@
 -- Path Walker
--- Copyright (C) 2020 Gaspar Capello
+-- Copyright (C) 2020-2021 Gaspar Capello
 
 -- Permission is hereby granted, free of charge, to any person obtaining
 -- a copy of this software and associated documentation files (the
@@ -294,6 +294,8 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
       ------------------------------------------------------------------------------------------------------
       --6 Make a new configuration string according the current input options. An example of configuration string = §f1§t2.0§s0.0§r0§a90.0§ltrue§p50.0§yTFUN1§
       ------------------------------------------------------------------------------------------------------
+      local initialScalePerCent = initialScale * 100.0
+      local finalScalePerCent = finalScale * 100.0
       local confString  = "§f" .. translationFunction .. "§" ..
                           "s" .. startTime .. "§" ..
                           "t" .. aniDuration .."§" ..
@@ -302,8 +304,8 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
                           "l" .. loopPathString .. "§" ..
                           "p" .. startPathPos .. "§" ..
                           "h" .. scaleFunction .. "§" ..
-                          "i" .. initialScale .. "§" ..
-                          "c" .. finalScale .. "§" ..
+                          "i" .. initialScalePerCent .. "§" ..
+                          "c" .. finalScalePerCent .. "§" ..
                           "n" .. makeNewResultLayerString .. "§"
       
       if scaleFunLayer ~= nil then

@@ -1,5 +1,5 @@
 -- Path Animator Tool
--- Copyright (C) 2020 Gaspar Capello
+-- Copyright (C) 2020-2021 Gaspar Capello
 
 -- Permission is hereby granted, free of charge, to any person obtaining
 -- a copy of this software and associated documentation files (the
@@ -116,6 +116,9 @@ if defaultConfString ~= nil then
   makeNewResultLayer = extractMakeNewResultLayerFromConf(defaultConfString)
   makeNewResultLayerEnabled = true
 end
+
+local initialScalePerCent = STRING_INITIAL_SCALE .. initialScale * 100.0 .. "_%"
+local finalScalePerCent = STRING_FINAL_SCALE .. finalScale * 100.0 .. "_%"
 
 local reAnimateIntention = true
 for i,layer in ipairs(app.range.layers) do
@@ -263,12 +266,12 @@ dlg:combobox  { id="scaleFunction",
 }
 dlg:newrow()
 dlg:number  {   id="initialScale",
-                text=initialScale,
+                text=initialScalePerCent,
                 decimals=3
 }
 dlg:newrow()
 dlg:number  {   id="finalScale",
-                text=finalScale,
+                text=finalScalePerCent,
                 decimals=3
 }
 dlg:newrow()
@@ -291,15 +294,17 @@ dlg:button  {   text = "Animate it",
                     local startPathPos = dlg.data.startPathPos
                     local loopPath = dlg.data.loopPath
                     local scaleFunction = dlg.data.scaleFunction:gsub(SFUNprefix, "")
-                    local initialScale = dlg.data.initialScale
-                    local finalScale = dlg.data.finalScale
+                    local initialScaleInput = dlg.data.initialScale
+                    local finalScaleInput = dlg.data.finalScale
                     local makeNewResultLayer = dlg.data.makeNewResultLayer
                     if duration == 0 then
                       duration = 2.0
                     end
-                    if initialScale == 0 and finalScale == 0 then
-                      initialScale = 1
-                      finalScale = 1
+                    if initialScaleInput ~= 0 then
+                      initialScale = initialScaleInput / 100.0
+                    end
+                    if finalScaleInput ~= 0 then
+                      finalScale = finalScaleInput / 100.0
                     end
                     local success = animateIt(app.range.layers,
                                               startTime,

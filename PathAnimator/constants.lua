@@ -1,5 +1,5 @@
 -- Path Animator Tool Constants
--- Copyright (C) 2020 Gaspar Capello
+-- Copyright (C) 2020-2021 Gaspar Capello
 
 -- Permission is hereby granted, free of charge, to any person obtaining
 -- a copy of this software and associated documentation files (the
@@ -27,6 +27,9 @@ STRING_ROTATION_LAYER = "RFUN"
 STRING_SCALE_LAYER = "SFUN"
 STRING_LOOKED_LAYER = "LOOKIT"
 STRING_ROTAUX_LAYER = "RotAux"
+
+STRING_INITIAL_SCALE = "Start_scale:_"
+STRING_FINAL_SCALE = "Final_scale:_"
 
 FUNC_LINEAL = "Lineal"
 FUNC_BYLAYER = "By Layer"
@@ -59,8 +62,8 @@ DEFAULT_DURATION_STRING = "Duration_[seg]"
 DEFAULT_INITIALANGLE_STRING = "Start_angle_[degrees]"
 DEFAULT_PATH_START_POS_STRING = "Start_path_pos_[%]"
 DEFAULT_LOOP_PATH = false
-DEFAULT_INITIAL_SCALE = "Start_scale_[%]"
-DEFAULT_FINAL_SCALE = "Final_scale_[%]"
+DEFAULT_INITIAL_SCALE = 1.0
+DEFAULT_FINAL_SCALE = 1.0
 DEFAULT_MAKE_NEW_RESULT_LAYER = true
 
 TFUNprefix = "Translation: "
