@@ -1,5 +1,5 @@
 -- Path Animator Tool
--- Copyright (C) 2020-2021 Gaspar Capello
+-- Copyright (C) 2020-2022 Gaspar Capello
 
 -- Permission is hereby granted, free of charge, to any person obtaining
 -- a copy of this software and associated documentation files (the
@@ -162,6 +162,7 @@ end
 local originalLayerStackIndices = {}
 local celWithImageFound = false
 local commandLayersFound = false
+local justARotationLayerWasFound = true -- To indentify if just a layer named RFUN was found.
 for i,layer in ipairs(app.range.layers) do
   table.insert(originalLayerStackIndices, layer.stackIndex)
   if layer.name:find(STRING_PATH_LAYER) == nil and
@@ -174,21 +175,48 @@ for i,layer in ipairs(app.range.layers) do
      #layer.cels >= 1 then
     celWithImageFound = true
   end
+  if layer.name:find(STRING_ROTATION_LAYER) ~= nil then
+    commandLayersFound = true
+  end
   if layer.name:find(STRING_PATH_LAYER) ~= nil or
      layer.name:find(STRING_LOOKED_LAYER) ~= nil then
     commandLayersFound = true
+    justARotationLayerWasFound = false
   end
 end
 if not commandLayersFound and not celWithImageFound then
-  app.alert(string.format("Error: selected layers don't contain %s or %s in their names. Even, selected layers are empty.", STRING_PATH_LAYER, STRING_LOOKED_LAYER))
+  app.alert(string.format("Error: selected layers don't contain %s, %s or %s in their names. Even, selected layers are empty.", STRING_PATH_LAYER, STRING_LOOKED_LAYER, STRING_ROTATION_LAYER))
   return nil
 elseif not commandLayersFound and celWithImageFound then
-  app.alert(string.format("Error: selected layers don't contains %s neither %s in their names.", STRING_PATH_LAYER, STRING_LOOKED_LAYER))
+  app.alert(string.format("Error: selected layers don't contains %s, %s or %s in their names.", STRING_PATH_LAYER, STRING_LOOKED_LAYER, STRING_ROTATION_LAYER))
   return nil
 elseif commandLayersFound and not celWithImageFound then
   app.alert("Error: one or more selected layers are empty. Please Select a layer with images.")
   return nil
 end
+
+local translationOptions = { TFUNprefix .. FUNC_LINEAL,
+                             TFUNprefix .. FUNC_BYLAYER,
+                             TFUNprefix .. FUNC_EASYIN,
+                             TFUNprefix .. FUNC_EASYOUT,
+                             TFUNprefix .. FUNC_EASYOUTDAMPED,
+                             TFUNprefix .. FUNC_EASYOUTDAMPED2,
+                             TFUNprefix .. FUNC_EASYINOUT,
+                             TFUNprefix .. FUNC_SINUSOIDAL,
+                             TFUNprefix .. FUNC_PARABOLIC }
+local rotationOptions = { ROTATIONprefix .. ROTATION_NONE,
+                          ROTATIONprefix .. ROTATION_PATH,
+                          ROTATIONprefix .. ROTATION_LOOKAT,
+                          ROTATIONprefix .. ROTATION_BYLAYER }
+
+-- Forced options when just a RFUN  is selected:
+if justARotationLayerWasFound then
+  translationOptions = { TFUNprefix .. " NONE"}
+  translationFun = TFUNprefix .. " NONE"
+  rotationOptions = { ROTATIONprefix .. ROTATION_BYLAYER }
+  rotationType = ROTATIONprefix .. ROTATION_BYLAYER
+end
+
 -- Dialogo:
 local dlg = Dialog{ title="Path Animator Tool" }
 dlg:button  {   text = HELP,
@@ -215,39 +243,32 @@ dlg:newrow()
 -- congigured a PATH START % of 0% , 33.33% and 66.67%.
 dlg:check  {  id="loopPath",
               text="Loop Path ?",
-              selected=loopPath
+              selected=loopPath,
+              enabled= not(justARotationLayerWasFound)
 }
 dlg:newrow()
 dlg:number  {   id="startPathPos",
                 text=startPathPos,
-                decimals=3
+                decimals=3,
+                enabled= not(justARotationLayerWasFound)
 }
 dlg:newrow()
-dlg:combobox  { id="translationFunction",
-                option=translationFun,
-                options={ TFUNprefix .. FUNC_LINEAL,
-                          TFUNprefix .. FUNC_BYLAYER,
-                          TFUNprefix .. FUNC_EASYIN,
-                          TFUNprefix .. FUNC_EASYOUT,
-                          TFUNprefix .. FUNC_EASYOUTDAMPED,
-                          TFUNprefix .. FUNC_EASYOUTDAMPED2,
-                          TFUNprefix .. FUNC_EASYINOUT,
-                          TFUNprefix .. FUNC_SINUSOIDAL,
-                          TFUNprefix .. FUNC_PARABOLIC }
+dlg:combobox  { id = "translationFunction",
+                option = translationFun,
+                options = translationOptions,
+                enabled = not(justARotationLayerWasFound)
 }
 dlg:newrow()
 
-dlg:combobox  { id="rotation",
-                option=rotationType,
-                options={ ROTATIONprefix .. ROTATION_NONE,
-                          ROTATIONprefix .. ROTATION_PATH,
-                          ROTATIONprefix .. ROTATION_LOOKAT,
-                          ROTATIONprefix .. ROTATION_BYLAYER }
+dlg:combobox  { id = "rotation",
+                option = rotationType,
+                options = rotationOptions,
+                enabled = not(justARotationLayerWasFound)
 }
 dlg:newrow()
-dlg:number  {   id="initialAngle",
-                text=initialAngle,
-                decimals=3
+dlg:number  {   id = "initialAngle",
+                text = initialAngle,
+                decimals = 3
 }
 dlg:newrow()
 

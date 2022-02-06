@@ -1,5 +1,5 @@
 -- Path Walker
--- Copyright (C) 2020-2021 Gaspar Capello
+-- Copyright (C) 2020-2022 Gaspar Capello
 
 -- Permission is hereby granted, free of charge, to any person obtaining
 -- a copy of this software and associated documentation files (the
@@ -99,7 +99,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
       ------------------------------------------------------------------------------------------------------
       --2 Make layer collections with selectedLayers
       ------------------------------------------------------------------------------------------------------
-      local startPathLayer = nil -- whit white dot
+      local startPathLayer = nil -- with a white dot
       local pathLayerCollection = {}
       local pathCollection = {} -- layers with strokes without white dot
       local trasFunLayer = nil
@@ -128,7 +128,6 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
           initialScale = extractInitialScaleFromConf(confString)
           finalScale = extractFinalScaleFromConf(confString)
         end
-
         if rotationType == ROTATION_BYLAYER then
           rotFunLayer = extractRotFunLayerFromLayerConf(confString)
           if rotFunLayer == nil then
@@ -164,7 +163,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
         end
 
         pathLayerCollection = extractPathLayersFromLayerConf(resultLayer.data)
-        if pathLayerCollection == nil then
+        if #pathLayerCollection == 0 then
           if rotationType ~= ROTATION_LOOKAT and rotationType ~= ROTATION_BYLAYER then
             app.alert(string.format("Path layer not found from configuration (config is in the custom data of the '%s' layer).", STRING_RESULT_LAYER))
             return false
@@ -208,14 +207,14 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
         end
       end
 
-      -- Dummy calculus to convert strings to number:
+      -- Dummy calculation to convert strings to numbers:
       initialAngle = initialAngle * 2 / 2
       initialScale = initialScale * 2 / 2
       finalScale = finalScale * 2 / 2
       aniDuration = aniDuration * 2 / 2
       startTime = startTime * 2 / 2
 
-      local generateStillPath = false -- when the user selects NO PATH layer, AND the user selects "Rotation: LookAt" or"Rotation: By Layer"
+      local generateStillPath = false -- when the user selects NO PATH layer, AND the user selects "Rotation: LookAt" or "Rotation: By Layer"
                                       -- we have to generate a "still path" to allow apply this 
       -- local temp = 0 -- temp = 0  -->  whitePointIsInStartPathLayer = true
       if startPathLayer == nil then
@@ -408,7 +407,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
         sprite:deleteLayer(auxLayer)
         return false
       end
-      if #weldedPath < 2 then
+      if #weldedPath < 1 then
         app.alert("Error: no path were formed.")
         sprite:deleteLayer(auxLayer)
         return false
@@ -422,12 +421,17 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
       if generateStillPath then
         table.insert(timeVector, 1)
       else
-        for i=1, #weldedPath-1, 1 do
-          local deltaT = math.sqrt(math.abs(weldedPath[i].x - weldedPath[i+1].x) + math.abs(weldedPath[i].y - weldedPath[i+1].y) )
-          table.insert(timeVector, timeVector[i] + deltaT)
+        -- weldPath == 1 if the path is a single pixel, so we'll need to avoid division by zero in next calculations
+        if #weldedPath == 1 then
+          timeVector[1] = 0
+        else
+          for i=1, #weldedPath-1, 1 do
+            local deltaT = math.sqrt(math.abs(weldedPath[i].x - weldedPath[i+1].x) + math.abs(weldedPath[i].y - weldedPath[i+1].y) )
+            table.insert(timeVector, timeVector[i] + deltaT)
+          end
         end
       end
-      -- Get the index which matchs with
+      -- Get the index which matches with
       -- the start percentage (Start Path Pos %)  -------------
       --                                                       |  
       --                                                   pathStartIndex
@@ -444,7 +448,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
       -- in this case 'pathJumpIndex' will be equal to the end index of 'weldedPath'  (i.e. pathJumpIndex = #weldedPath)
       --
       local totalTravelTime = timeVector[#timeVector]
-      local pathStartIndex = nil
+      local pathStartIndex = 1
       for i=1, #timeVector, 1 do
         if timeVector[i]/totalTravelTime >= startPathPos / 100.0 then
           pathStartIndex = i
@@ -463,7 +467,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
       for i=pathStartIndex, #weldedPath, 1 do
         table.insert(auxVector, weldedPath[i])
       end
-      if loopPath then
+      if loopPath and #weldedPath > 1 then
         -- Non cyclic path loop
         for i=1, pathStartIndex-1, 1 do
           table.insert(auxVector, weldedPath[i])
@@ -472,7 +476,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
       weldedPath = auxVector -- modified welded path
 
       local pathJumpIndex = 0
-      if loopPath then
+      if loopPath and #weldedPath > 1 then
         pathJumpIndex = #weldedPath - pathStartIndex + 1 -- index which path jumps from a middle point of the path to the beginning
       else
         pathJumpIndex = #weldedPath
@@ -481,9 +485,13 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
       -- Recalculate timeVector, we need to do it again because if the path is cyclic (loopPath == true) the time increment is not linear on 'pathJumpIndex'
       timeVector = { 0 }
       local deltaT
-      if generateStillPath then
+      if generateStillPath or #weldedPath == 1 then
         table.insert(timeVector, 1)
         pathJumpIndex = 2
+        -- Conditioning weldedPath to match data input in next functions
+        if #weldedPath == 1 then
+          weldedPath = { weldedPath[1], weldedPath[1] }
+        end
       else
         for i=1, #weldedPath-1, 1 do
           if i == pathJumpIndex then
@@ -607,6 +615,9 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
                                                                   C,
                                                                   startFrame,
                                                                   initialAngle * math.pi / 180)
+        if rotationInstructionVector == nil then
+          return false
+        end
         -- print("10.8-DONE")
         local deltaAngleRad = deltaAngle * math.pi / 180
         for i=1, #rotationInstructionVector, 1 do

@@ -1,5 +1,5 @@
 -- Layer Operations
--- Copyright (C) 2020-2021 Gaspar Capello
+-- Copyright (C) 2020-2022 Gaspar Capello
 
 -- Permission is hereby granted, free of charge, to any person obtaining
 -- a copy of this software and associated documentation files (the
@@ -153,7 +153,7 @@ end
 
 function extractPathLayersFromLayerConf(layerData)
     if layerData:find("«") == nil then
-        return nil
+        return {} -- we return an empty vector
     end
     local pathLayersNames = {}
     local layerDataString = layerData:sub(1, layerData:len())

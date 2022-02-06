@@ -1,5 +1,5 @@
 -- Path Finder
--- Copyright (C) 2020 Gaspar Capello
+-- Copyright (C) 2020-2022 Gaspar Capello
 
 -- Permission is hereby granted, free of charge, to any person obtaining
 -- a copy of this software and associated documentation files (the
@@ -71,7 +71,9 @@ function isEnd(pathImage, x, y)
       end
     end
   end
-  if pxFounded == 1 then
+  -- If pxFounded == 0 implies we found an isolated pixel
+  -- If pxFounded == 1 implies we found an stroke end
+  if pxFounded <= 1 then
     return Point(x, y)
   end
   return nil
@@ -100,7 +102,7 @@ function findEndDots(celToExplore)
       end
     end
   end
-  if #endDots == 2 then
+  if #endDots <= 2 then
     return endDots
   else
     return nil
@@ -153,6 +155,9 @@ function getPath(pathLayer)
       return nil
     end
     startPixel = endDots[1]
+    if #endDots == 1 then
+      return {startPixel}
+    end
   end
 
   local image = pathLayer.cels[1].image
