@@ -102,7 +102,7 @@ function findEndDots(celToExplore)
       end
     end
   end
-  if #endDots <= 2 then
+  if #endDots > 0 and #endDots <= 2 then
     return endDots
   else
     return nil
@@ -415,7 +415,3 @@ function makePath(pathVectorExtended, timeVectorN, frameCount, translationFun, t
 
   return outputCoordinatesVector
 end
-
-
-
-
