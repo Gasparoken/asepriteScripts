@@ -338,7 +338,8 @@ dlg:button  {   text = "Animate it",
                                               scaleFunction,
                                               initialScale,
                                               finalScale,
-                                              makeNewResultLayer)
+                                              makeNewResultLayer,
+                                              sprite.palettes[1])
                     app.activeFrame = 1
                     dlg:close()
                   end

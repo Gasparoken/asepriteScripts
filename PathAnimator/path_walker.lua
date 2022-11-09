@@ -70,7 +70,8 @@ end
 
 function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
                    rotationType, initialAngle, startPathPos, loopPath,
-                   scaleFunction, initialScale, finalScale, makeNewResultLayer)
+                   scaleFunction, initialScale, finalScale, makeNewResultLayer,
+                   palette)
   app.transaction(
     function()
       ------------------------------------------------------------------------------------------------------
@@ -169,7 +170,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
             return false
           end
         else
-          if findWhiteDot(pathLayerCollection[1].cels[1]) ~= nil then
+          if findWhiteDot(pathLayerCollection[1].cels[1], palette) ~= nil then
             startPathLayer = pathLayerCollection[1]
           end
         end
@@ -177,7 +178,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
         for i, layer in ipairs(selectedLayers) do
           if layer.name:find(STRING_PATH_LAYER) ~= nil  then
             if startPathLayer == nil then
-              local startPoint = findWhiteDot(layer.cels[1])
+              local startPoint = findWhiteDot(layer.cels[1], palette)
               if startPoint ~= nil then
                 startPathLayer = layer
                 table.insert(pathLayerCollection, 1, layer) -- startPathLayer is the first element
@@ -232,7 +233,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
       end
       
       for i=1, #pathLayerCollection, 1 do
-        local path = getPath(pathLayerCollection[i])
+        local path = getPath(pathLayerCollection[i], palette)
         if path == nil then
           app.alert(string.format("Error: Bad path in layer: '%s'. No end points were found on it.", pathLayerCollection[i].name))
           app.alert(string.format("A well-formed path is made from a 1-pixel-thick stroke, with Pixel Perfect mode ON. Optional: put a white point at the desired beginning."))
@@ -382,7 +383,7 @@ function animateIt(selectedLayers, startTime, aniDuration, translationFunction,
         local imageCenterPoint = imageToMovePos + Point(imageToMove.width / 2, imageToMove.height / 2)
         startPath = { imageCenterPoint, imageCenterPoint }
       else
-        startPath = getPath(pathLayerCollection[1])
+        startPath = getPath(pathLayerCollection[1], palette)
       end
       if startPath == nil then
         app.alert(string.format("Error: bad path in layer: '%s'. No end points were found on it.", pathLayerCollection[1].name))

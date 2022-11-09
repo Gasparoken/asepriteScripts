@@ -34,7 +34,7 @@ explorationVector = { Point( 1, -1),
 -- ===================== -- ===================== -- =====================
 -- ===================== -- ===================== -- =====================
 
-function findWhiteDot(celToExplore)
+function findWhiteDot(celToExplore, palette)
 -- Encontrar el punto inicial (blanco)
   if celToExplore == nil then
     app.alert("Internal error: the input argument celToExplore is 'nil' on function findWhiteDot(), in path_finder.lua.")
@@ -44,10 +44,23 @@ function findWhiteDot(celToExplore)
   local w = imageToExplore.width
   local h = imageToExplore.height
   local startPixel = nil
+
+  local whiteColor = 0xFFFFFFFF
+  if celToExplore.image.colorMode == ColorMode.GRAY then
+    whiteColor = 0xFF
+  elseif celToExplore.image.colorMode == ColorMode.INDEXED then
+    for i=0, #palette - 1, 1 do
+      if palette:getColor(i).rgbaPixel == whiteColor then
+          whiteColor = i
+        break
+      end
+    end
+  end
+
   for y=0, h-1, 1 do
     for x=0, w-1, 1 do
         local px = imageToExplore:getPixel(x, y)
-        if px == 0xFFFFFFFF then
+        if px == whiteColor then
           startPixel = Point(celToExplore.position.x + x, celToExplore.position.y + y)
           break
         end
@@ -147,8 +160,8 @@ end
 -- ===================== -- ===================== -- =====================
 -- ===================== -- ===================== -- =====================
 
-function getPath(pathLayer)
-  local startPixel = findWhiteDot(pathLayer.cels[1])
+function getPath(pathLayer, palette)
+  local startPixel = findWhiteDot(pathLayer.cels[1], palette)
   if startPixel == nil then
     local endDots = findEndDots(pathLayer.cels[1])
     if endDots == nil then

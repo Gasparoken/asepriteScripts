@@ -1,5 +1,5 @@
 -- Rotation
--- Copyright (C) 2020 Gaspar Capello
+-- Copyright (C) 2020-2022 Gaspar Capello
 
 -- Permission is hereby granted, free of charge, to any person obtaining
 -- a copy of this software and associated documentation files (the
@@ -33,7 +33,7 @@ function Rotar(image2Rot, angle)
     maxSize = maxSize + 1
   end
   -- maxSize is a even number
-  local centeredImage = Image(maxSize, maxSize)
+  local centeredImage = Image(maxSize, maxSize, image2Rot.colorMode)
   -- center image2Rot in the new image 'centeredImage'
   local image2RotPosition = Point((centeredImage.width - image2Rot.width) / 2, (centeredImage.height - image2Rot.height) / 2)
   for y=image2RotPosition.y, image2RotPosition.y + image2Rot.height - 1, 1 do
@@ -43,7 +43,7 @@ function Rotar(image2Rot, angle)
   end
 
   local pivot = Point(centeredImage.width / 2 - 0.5 + (image2Rot.width % 2) * 0.5, centeredImage.height / 2 - 0.5 + (image2Rot.height % 2) * 0.5)
-  local outputImg = Image(centeredImage.width, centeredImage.height)
+  local outputImg = Image(centeredImage.width, centeredImage.height, image2Rot.colorMode)
 
   if angle == 0 then
     for y = 0 , centeredImage.height-1, 1 do
