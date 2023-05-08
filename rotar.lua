@@ -1,4 +1,4 @@
--- Copyright (C) 2020-2021 Gaspar Capello
+-- Copyright (C) 2020-2023 Gaspar Capello
 
 -- Permission is hereby granted, free of charge, to any person obtaining
 -- a copy of this software and associated documentation files (the
@@ -47,7 +47,7 @@ local sprite = app.activeSprite
 if not app.isUIAvailable then
     return nil
  end
- 
+
 if sprite == nil then
   app.alert("WARNING: You should open a sprite first.")
   return nil
@@ -63,7 +63,7 @@ function Rotar(image2Rot, angle)
     maxSize = maxSize + 1
   end
   -- maxSize is a even number
-  local centeredImage = Image(maxSize, maxSize)
+  local centeredImage = Image(maxSize, maxSize, image2Rot.colorMode)
   -- center image2Rot in the new image 'centeredImage'
   local image2RotPosition = Point((centeredImage.width - image2Rot.width) / 2, (centeredImage.height - image2Rot.height) / 2)
   for y=image2RotPosition.y, image2RotPosition.y + image2Rot.height - 1, 1 do
@@ -73,7 +73,7 @@ function Rotar(image2Rot, angle)
   end
 
   local pivot = Point(centeredImage.width / 2 - 0.5 + (image2Rot.width % 2) * 0.5, centeredImage.height / 2 - 0.5 + (image2Rot.height % 2) * 0.5)
-  local outputImg = Image(centeredImage.width, centeredImage.height)
+  local outputImg = Image(centeredImage.width, centeredImage.height, image2Rot.colorMode)
 
   if angle == 0 then
     for y = 0 , centeredImage.height-1, 1 do
@@ -163,11 +163,11 @@ end
 --Abrir dialogo selección de pivot y angulo a girar
 local turnDirection
 local dlg = Dialog{ title="Rotation Tool                             " }
-dlg:newrow()          
+dlg:newrow()
 dlg:entry{  id= "rps",
             text= DEFAULT_RPS_TEXT
 }
-dlg:newrow()          
+dlg:newrow()
 dlg:entry{  id= "turns",
             text= DEFAULT_TURNS_TEXT
 }
@@ -292,7 +292,7 @@ app.transaction(
     if turns >= 1 then
       rotatedCachedImagesCount = math.floor(1 / frameDuration)
       maxAngle = turnDirection * 2 * math.pi - angularStepPerFrame
-    else 
+    else
       rotatedCachedImagesCount = math.floor((turns - wholeTurns) / frameDuration)
       maxAngle = turnDirection * 2 * math.pi * (turns - wholeTurns) - angularStepPerFrame
     end
