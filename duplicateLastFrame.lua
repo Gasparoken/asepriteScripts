@@ -5,7 +5,7 @@ local originalSelectedFrame = app.activeFrame
 function duplicatePenultimateCel(layer)
   local framesCount = #app.activeSprite.frames
   if layer:cel(framesCount-1) ~= nil then
-    local image = Image(layer:cel(framesCount-1).image)
+    local image = Image(layer:cel(framesCount-1).image, spr.colorMode)
     spr:newCel(layer, framesCount)
     layer:cel(framesCount).image = image
     layer:cel(framesCount).position = layer:cel(framesCount-1).position
