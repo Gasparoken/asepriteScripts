@@ -1,0 +1,23 @@
+name: Bug Report
+description: Reportar un error encontrado en la app
+labels: [bug]
+
+body:
+  - type: input
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+      description: Describe cómo reproducir el error
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severidad
+      options:
+        - Baja
+        - Media
+        - Alta
+    validations:
+      required: true
