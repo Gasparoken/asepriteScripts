@@ -1,0 +1,14 @@
+{
+  "name": "Select Tiles",
+  "displayName": "Select Tiles",
+  "description": "Select all tiles with the same foreground tile index on the tilemap image",
+  "version": "1.0",
+  "author": { "name": "Gasparoken", "url": "https://github.com/Gasparoken/asepriteScripts" },
+  "publisher": "aseprite",
+  "categories": [ "Scripts" ],
+  "contributes": {
+    "scripts": [
+        { "path": "./selectTiles.lua" }
+    ]
+  }
+}
