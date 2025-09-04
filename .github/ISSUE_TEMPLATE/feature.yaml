@@ -1,0 +1,70 @@
+name: Feature Request
+description: Suggest a new feature in Aseprite
+title: "[Feature]: "
+labels: [feature, triage]
+
+body:
+  - type: dropdown
+    id: subtopic
+    attributes:
+      label: Subtopics
+      description: Select one or more areas related to this feature
+      multiple: true
+      options:
+        - cli
+        - colorbar
+        - i18n
+        - tilemap
+        - timeline
+        - ui
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: duplicates
+    attributes:
+      label: Did another user suggest a similar idea?
+      description: Please check if the feature has already been suggested
+      options:
+        - label: No
+        - label: Yes / Links to similar ideas
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        > You can try to find similar feature requests here:
+        > - GitHub issues: https://github.com/aseprite/aseprite/issues?q=label%3Afeature
+        > - Community site: https://community.aseprite.org/c/features/7
+        > - Steam community: https://steamcommunity.com/app/431730/discussions/1/
+        >
+        > If you find a similar feature request, commenting there will help show interest and give the request more traction.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem? Please describe.
+      description: A clear and concise description of what the problem is. For example: "I'm always frustrated when [...]"
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+      description: A clear and concise description of what you want to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Describe alternatives you've considered
+      description: A clear and concise description of any alternative solutions or features you've considered.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other context or screenshots about the feature request here.

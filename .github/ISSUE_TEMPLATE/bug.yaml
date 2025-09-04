@@ -1,0 +1,74 @@
+name: Bug Report
+description: Report a bug in Aseprite
+title: "[Bug]: "
+labels: [bug, triage]
+
+body:
+  - type: dropdown
+    id: subtopic
+    attributes:
+      label: Subtopics
+      description: Select one or more areas related to this bug
+      multiple: true
+      options:
+        - cli
+        - colorbar
+        - i18n
+        - tilemap
+        - timeline
+        - ui
+    validations:
+      required: true
+
+  - type: textarea
+    id: describe
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: How to reproduce the behavior
+      value: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots or a screen recording to help explain your problem.
+
+  - type: textarea
+    id: system
+    attributes:
+      label: Aseprite & System
+      description: Please complete the following information
+      value: |
+        - Aseprite: [version number, installer/portable/Steam/beta/dev/commit-hash]
+        - System: [Windows/macOS/Linux, version, distribution]
+        - Extensions: [List the extensions you have installed]
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here.
